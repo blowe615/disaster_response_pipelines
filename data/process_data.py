@@ -5,6 +5,17 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 def load_data(messages_filepath, categories_filepath):
+    '''
+    Loads and merges the datasets containing disaster messages and
+    the corresponding message categories
+
+    Inputs
+    messages_filepath: str, location of messages dataset
+    categories_filepath: str, location of categories dataset
+
+    Returns
+    df: pandas DataFrame of the merged messages and categories datasets
+    '''
     # load messages dataset
     messages = pd.read_csv(messages_filepath)
 
@@ -18,6 +29,16 @@ def load_data(messages_filepath, categories_filepath):
 
 
 def clean_data(df):
+    '''
+    Cleans the dataframe by splitting the categories into separate columns
+    and dropping duplicate messages
+
+    Input:
+    df: pandas DataFrame, typically the output of load_data
+
+    Returns
+    df: pandas DataFrame, cleaned version of input df
+    '''
     # create a dataframe of the 36 individual category columns
     categories = df['categories'].str.split(';',expand=True)
 
@@ -50,44 +71,63 @@ def clean_data(df):
     return df
 
 def save_data(df, database_filename, table_name):
+    '''
+    Saves cleaned dataframe to a SQLite database provided by the user.
+
+    Inputs:
+    df: pandas DataFrame, cleaned dataframe, typically the output of clean_data
+    database_filename: str, location of SQLite database
+    table_name: str, name of table in database, will replace if it exists
+    '''
     engine = create_engine('sqlite:///'+database_filename)
     df.to_sql(table_name, engine, if_exists='replace', index=False)
 
 
 def main():
+    # if no table name is given by the user, save data to 'merged'
     if len(sys.argv) == 4:
 
+        # assign variables from system arguments
         messages_filepath, categories_filepath, database_filepath = sys.argv[1:]
         table_name = 'merged'
 
+        # run load_data
         print('Loading data...\n    MESSAGES: {}\n    CATEGORIES: {}'
               .format(messages_filepath, categories_filepath))
         df = load_data(messages_filepath, categories_filepath)
 
+        # run clean_data
         print('Cleaning data...')
         df = clean_data(df)
 
+        # run save_data
         print('Saving data...\n    DATABASE: {}\n    TABLE: {}'.format(database_filepath, table_name))
         save_data(df, database_filepath, table_name)
 
         print('Cleaned data saved to database!')
 
+    # if table name is given by the user, save data to table_name
     elif len(sys.argv) == 5:
 
+        # assign variables from system arguments
         messages_filepath, categories_filepath, database_filepath, table_name = sys.argv[1:]
 
+        # run load_data
         print('Loading data...\n    MESSAGES: {}\n    CATEGORIES: {}'
               .format(messages_filepath, categories_filepath))
         df = load_data(messages_filepath, categories_filepath)
 
+        # run clean_data
         print('Cleaning data...')
         df = clean_data(df)
 
+        # run save_data
         print('Saving data...\n    DATABASE: {}\n    TABLE: {}'.format(database_filepath, table_name))
         save_data(df, database_filepath, table_name)
 
         print('Cleaned data saved to database!')
 
+    # if the incorrect number of inputs is give, ask for the correct number
     else:
         print('Please provide the filepaths of the messages and categories '\
               'datasets as the first and second argument respectively, as '\
