@@ -58,6 +58,9 @@ def clean_data(df):
         # convert column from string to numeric
         categories[column] = categories[column].astype(int)
 
+    # Map values of 2 to 1 in 'related' category
+    categories['related'] = categories['related'].map({0:0,1:1,2:1})
+    
     # replace the original 'category' column in df with categories df
     # drop the original categories column from `df`
     df.drop(columns='categories',inplace=True)
